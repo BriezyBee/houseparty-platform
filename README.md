@@ -1,7 +1,9 @@
 # 🏠 House Party Platform
 
-**Open‑source software for nonprofits and political campaigns.**  
-AGPL licensed. Built by and for community organizers.
+This project is now on my local computer!
+
+
+**Open‑source software for nonprofits and political campaigns.** AGPL licensed. Built by and for community organizers.
 
 ## What is this?
 
