@@ -19,30 +19,37 @@
         <div id="message" style="color: red; margin-top: 10px;"></div>
     </div>
     <script>
-        async function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const messageDiv = document.getElementById('message');
-            messageDiv.innerText = '';
+    async function login() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const messageDiv = document.getElementById('message');
+        messageDiv.innerText = '';
 
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await response.json();
-                if (response.ok) {
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await response.json();
+            console.log('Login response:', data);   // <-- log the response
+
+            if (response.ok) {
+                if (data.token) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     window.location.href = '/';
                 } else {
-                    messageDiv.innerText = data.error || 'Login failed';
+                    messageDiv.innerText = 'No token received from server.';
                 }
-            } catch (err) {
-                messageDiv.innerText = 'Network error. Is the backend running?';
+            } else {
+                messageDiv.innerText = data.error || 'Login failed';
             }
+        } catch (err) {
+            console.error(err);
+            messageDiv.innerText = 'Network error. Is the backend running?';
         }
-    </script>
+    }
+</script>
 </body>
 </html>
