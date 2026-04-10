@@ -3,25 +3,25 @@ import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { supabase } from './supabaseClient.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-me';
 
+// Middleware
 app.use(cors());
 app.use(express.json());
-import path from 'path';
-import { fileURLToPath } from 'url';
+app.use(express.static(path.join(__dirname, '../public')));  // serves login.html, index.html
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-app.use(express.static(path.join(__dirname, '../public')));
-
-// ------------------- Helper Middleware -------------------
+// ---------- Helper Middleware ----------
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -34,7 +34,7 @@ function authenticateToken(req, res, next) {
   });
 }
 
-// ------------------- Register Endpoint -------------------
+// ---------- Register ----------
 app.post('/api/register', async (req, res) => {
   const { email, password, role } = req.body;
   if (!email || !password) {
@@ -71,17 +71,19 @@ app.post('/api/register', async (req, res) => {
     return res.status(500).json({ error: 'Failed to create user' });
   }
 
-  res.status(201).json({ message: 'User created', user: { id: data.id, email: data.email, role: data.role } });
+  res.status(201).json({
+    message: 'User created',
+    user: { id: data.id, email: data.email, role: data.role },
+  });
 });
 
-// ------------------- Login Endpoint -------------------
+// ---------- Login ----------
 app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return res.status(400).json({ error: 'Email and password required' });
   }
 
-  // Find user by email
   const { data: user, error } = await supabase
     .from('users')
     .select('*')
@@ -110,7 +112,7 @@ app.post('/api/login', async (req, res) => {
   res.json({ token, user: { id: user.id, email: user.email, role: user.role } });
 });
 
-// ------------------- Shifts Endpoint (Protected) -------------------
+// ---------- Get Shifts (Protected) ----------
 app.get('/api/shifts', authenticateToken, async (req, res) => {
   try {
     const { data: shifts, error } = await supabase
@@ -126,12 +128,13 @@ app.get('/api/shifts', authenticateToken, async (req, res) => {
   }
 });
 
-// ------------------- Health Check -------------------
+// ---------- Health Check (Public) ----------
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'House Party backend with Supabase' });
 });
 
-// ------------------- Start Server -------------------
+// ---------- Start Server ----------
 app.listen(port, () => {
   console.log(`Backend listening at http://localhost:${port}`);
+  console.log(`Serving static files from ${path.join(__dirname, '../public')}`);
 });
